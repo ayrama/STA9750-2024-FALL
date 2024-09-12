@@ -1,7 +1,9 @@
 ---
-title: "This is my title"
+title: "Ayrat Aymetov"
 ---
 
-Here is the _body_ of the __page__.
+I am a graduate student at **Baruch College** pursuing a *Master's degree in Statistics with a Data Science track*. My expected graduation date is the end of May 2025. I have a Bachelor's degree in Computer Science with a minor in Data Science and Computational Mathematics from **Brooklyn College**. I am seeking employment as a Data Scientist or Data Analyst.
 
-![Statistics](https://media.licdn.com/dms/image/v2/D4D12AQGVmtVwsf0I4Q/article-cover_image-shrink_423_752/article-cover_image-shrink_423_752/0/1685418305972?e=1731542400&v=beta&t=Eg08JAV4qrtquYSYv6jrDheAEtrskfy8443cEM2OMYQ)
+![Master's degree from Baruch College](https://poetsandquants.com/wp-content/uploads/sites/5/2019/01/Zicklin_Baruch_Campus1-645x325.jpg)
+
+![Bachelor’s degree from Brooklyn College](https://www.ny-engineers.com/hs-fs/hubfs/Brooklyn-College.jpg?width=738&name=Brooklyn-College.jpg)
