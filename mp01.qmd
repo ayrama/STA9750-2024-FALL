@@ -19,8 +19,6 @@ if(!require("tidyverse")) install.packages("tidyverse")
 library(tidyverse)
 library(tidyverse)
 
-# setwd("C:/Users/ayram/OneDrive/Desktop/Baruch college. STA 9715/MP01")
-
 FARES <- readxl::read_xlsx("2022_Fare_Revenue.xlsx") |>
   select(-`State/Parent NTD ID`, 
          -`Reporter Type`,
