@@ -8,12 +8,16 @@ execute:
   warning: false
   message: false
 ---
+```{r}
+library(tidyverse)
+```
+
 # Introduction to the Mini-Project: The Business of Show Business
 This project simulates the role of a Hollywood development executive, using data insights to propose a marketable movie idea. By analyzing IMDb datasets, we explore factors driving movie success, such as ratings, genres, and the impact of top actors and directors.
 
 A key focus is identifying classic films for a potential remake—balancing audience trends with originality. The final pitch proposes a data-driven plan to align artistic vision with business strategy, culminating in a compelling proposal ready for studio approval.
 
-# Data Preparation.
+# Data Preparation
 
 For this project, we will use data from the Internet Movie Database (IMDb). Specifically, we will use the tables from the IMDb non-commercial release. These files are made freely available by IMDb for non-commercial use.
 
@@ -30,55 +34,10 @@ get_imdb_file <- function(fname){
     as.data.frame(readr::read_tsv(fname_ext, lazy=FALSE))
 }
 
-# Load and save datasets (only run this once)
-NAME_BASICS <- get_imdb_file("name.basics") |>
-  select(nconst, primaryName, birthYear, deathYear, primaryProfession, knownForTitles)
-saveRDS(NAME_BASICS, "name_basics_filtered.rds")
-
-TITLE_BASICS <- get_imdb_file("title.basics") |>
-  select(tconst, primaryTitle, originalTitle, titleType, startYear, endYear, isAdult, genres)
-saveRDS(TITLE_BASICS, "title_basics_filtered.rds")
-
-TITLE_EPISODES <- get_imdb_file("title.episode") |>
-  select(tconst, parentTconst, seasonNumber, episodeNumber)
-saveRDS(TITLE_EPISODES, "title_episodes_filtered.rds")
-
 TITLE_RATINGS <- get_imdb_file("title.ratings") |>
-  select(tconst, averageRating, numVotes)
-saveRDS(TITLE_RATINGS, "title_ratings_filtered.rds")
-
-TITLE_CREW <- get_imdb_file("title.crew") |>
-  select(tconst, directors, writers)
-saveRDS(TITLE_CREW, "title_crew_filtered.rds")
-
-TITLE_PRINCIPALS <- get_imdb_file("title.principals") |>
-  select(tconst, nconst, category, job, characters)
-saveRDS(TITLE_PRINCIPALS, "title_principals_filtered.rds")
+  select(tconst, averageRating, numVotes) 
 ```
-
-```{r}
-# Loading filtered data sets from RDS files
-NAME_BASICS <- readRDS("name_basics_filtered.rds")
-TITLE_BASICS <- readRDS("title_basics_filtered.rds")
-TITLE_EPISODES <- readRDS("title_episodes_filtered.rds")
-TITLE_RATINGS <- readRDS("title_ratings_filtered.rds")
-TITLE_CREW <- readRDS("title_crew_filtered.rds")
-TITLE_PRINCIPALS <- readRDS("title_principals_filtered.rds")
-```
-
-
-## Data Sub-Sampling
-This data is large enough that we’re going to need to immediately start down-selecting to get to a data set that we can analyze fluidly. For our NAME_BASICS table, we’ll restrict our attention to people with at least two “known for” credits.
-
-```{r}
-library(tidyverse)
-
-NAME_BASICS <- NAME_BASICS |> 
-    filter(str_count(knownForTitles, ",") > 1)
-```
-
 IMDb has a long tail of obscure movies:
-
 ```{r}
 TITLE_RATINGS |>
     ggplot(aes(x=numVotes)) + 
@@ -97,21 +56,32 @@ TITLE_RATINGS |>
     pull(numVotes) |>
     quantile()
 ```
-Applying this drop, we significantly reduce the size of our data set:
+We are applying even bigger drop by setting the number of votes >= 1000
 ```{r}
 TITLE_RATINGS <- TITLE_RATINGS |>
-    filter(numVotes >= 100)
+    filter(numVotes >= 1000)
 ```
 
-We want to perform the same filtering on our other TITLE_* tables. This is a rare use for the semi_join. Recall that a semi_join returns only values which have a match,but doesn’t actually add columns.
+
 ```{r}
+saveRDS(TITLE_RATINGS, "title_ratings_filtered.rds")
+
+NAME_BASICS <- get_imdb_file("name.basics") |>
+  select(nconst, primaryName, birthYear, deathYear, primaryProfession, knownForTitles) |>
+  filter(str_count(knownForTitles, ",") > 1)
+saveRDS(NAME_BASICS, "name_basics_filtered.rds")
+
+
+TITLE_BASICS <- get_imdb_file("title.basics") |>
+  select(tconst, primaryTitle, originalTitle, titleType, startYear, endYear, genres)
+
 TITLE_BASICS <- TITLE_BASICS |>
     semi_join(TITLE_RATINGS, 
               join_by(tconst == tconst))
+saveRDS(TITLE_BASICS, "title_basics_filtered.rds")
 
-TITLE_CREW <- TITLE_CREW |>
-    semi_join(TITLE_RATINGS, 
-              join_by(tconst == tconst))
+TITLE_EPISODES <- get_imdb_file("title.episode") |>
+  select(tconst, parentTconst, seasonNumber, episodeNumber)
 
 TITLE_EPISODES_1 <- TITLE_EPISODES |>
     semi_join(TITLE_RATINGS, 
@@ -123,13 +93,35 @@ TITLE_EPISODES_2 <- TITLE_EPISODES |>
 TITLE_EPISODES <- bind_rows(TITLE_EPISODES_1,
                             TITLE_EPISODES_2) |>
     distinct()
+saveRDS(TITLE_EPISODES, "title_episodes_filtered.rds")
 
+TITLE_CREW <- get_imdb_file("title.crew") |>
+  select(tconst, directors, writers)
+
+TITLE_CREW <- TITLE_CREW |>
+    semi_join(TITLE_RATINGS, 
+              join_by(tconst == tconst))
+saveRDS(TITLE_CREW, "title_crew_filtered.rds")
+
+TITLE_PRINCIPALS <- get_imdb_file("title.principals") |>
+  select(tconst, nconst, category, job, characters)
 TITLE_PRINCIPALS <- TITLE_PRINCIPALS |>
     semi_join(TITLE_RATINGS, join_by(tconst == tconst))
-
+saveRDS(TITLE_PRINCIPALS, "title_principals_filtered.rds")
 
 rm(TITLE_EPISODES_1)
 rm(TITLE_EPISODES_2)
+```
+
+
+```{r}
+# Loading filtered data sets from RDS files
+NAME_BASICS <- readRDS("name_basics_filtered.rds")
+TITLE_BASICS <- readRDS("title_basics_filtered.rds")
+TITLE_EPISODES <- readRDS("title_episodes_filtered.rds")
+TITLE_RATINGS <- readRDS("title_ratings_filtered.rds")
+TITLE_CREW <- readRDS("title_crew_filtered.rds")
+TITLE_PRINCIPALS <- readRDS("title_principals_filtered.rds")
 ```
 
 
@@ -146,8 +138,7 @@ TITLE_EPISODES <- TITLE_EPISODES |>
 
 TITLE_BASICS <- TITLE_BASICS |>
     mutate(startYear = as.numeric(startYear),
-           endYear = as.numeric(endYear),,
-           isAdult = as.logical(isAdult))
+           endYear = as.numeric(endYear))
 ```
 
 Let's look at all five tables and data types of their columns:
