@@ -8,7 +8,7 @@
 
 <meta name="author" content="Ayrat Aymetov">
 
-<title>mp02 – STA 9750 2024 Submission Material</title>
+<title>Mini-Project #02: The Business of Show Business – STA 9750 2024 Submission Material</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -70,10 +70,10 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <script src="site_libs/quarto-html/tippy.umd.min.js"></script>
 <script src="site_libs/quarto-html/anchor.min.js"></script>
 <link href="site_libs/quarto-html/tippy.css" rel="stylesheet">
-<link href="site_libs/quarto-html/quarto-syntax-highlighting-dark.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles">
 <script src="site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="site_libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="dark">
+<link href="site_libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="light">
 <script id="quarto-search-options" type="application/json">{
   "location": "navbar",
   "copy-button": false,
@@ -152,7 +152,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
 <header id="title-block-header" class="quarto-title-block default">
 <div class="quarto-title">
-<h1 class="title">mp02</h1>
+<h1 class="title">Mini-Project #02: The Business of Show Business</h1>
 </div>
 
 
@@ -231,11 +231,12 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
       5      11      26     100 2954275 </code></pre>
 </div>
 </div>
-<p>We are applying even bigger drop by setting the number of votes &gt;= 1000</p>
+<p>We are refining the dataset by applying a stricter filter that only includes titles with at least 1,000 votes. This ensures the selected entries have meaningful audience engagement while also significantly reducing the dataset’s size for more efficient analysis.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>TITLE_RATINGS <span class="ot">&lt;-</span> TITLE_RATINGS <span class="sc">|&gt;</span></span>
 <span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>    <span class="fu">filter</span>(numVotes <span class="sc">&gt;=</span> <span class="dv">1000</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
+<p>To ensure RStudio can handle the rendering process smoothly, I am reducing the size of the downloaded datasets by removing unnecessary columns from the tables. Additionally, I am using a semi-join with the reduced <code>TITLE_RATINGS</code> table to further limit the data to only relevant entries for our analysis.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="fu">saveRDS</span>(TITLE_RATINGS, <span class="st">"title_ratings_filtered.rds"</span>)</span>
 <span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a></span>
@@ -285,6 +286,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb7-46"><a href="#cb7-46" aria-hidden="true" tabindex="-1"></a><span class="fu">rm</span>(TITLE_EPISODES_1)</span>
 <span id="cb7-47"><a href="#cb7-47" aria-hidden="true" tabindex="-1"></a><span class="fu">rm</span>(TITLE_EPISODES_2)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
+<p>All six tables have been saved as RDS files, and now it’s time to load them back from the RDS format for further analysis.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Loading filtered data sets from RDS files</span></span>
 <span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>NAME_BASICS <span class="ot">&lt;-</span> <span class="fu">readRDS</span>(<span class="st">"name_basics_filtered.rds"</span>)</span>
@@ -296,7 +298,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </div>
 <section id="task-1" class="level2">
 <h2 class="anchored" data-anchor-id="task-1">Task 1</h2>
-<p>Using the glimpse() function, we see that certain columns need type conversion. In NAME_BASICS, birthYear and deathYear should be converted to numeric using as.numeric(). In TITLE_EPISODES, both seasonNumber and episodeNumber should also be numeric. Similarly, startYear, endYear, and runtimeMinutes in TITLE_BASICS should be numeric, and isAdult should be converted to logical (boolean). We can use mutate() to apply these changes efficiently.</p>
+<p>Using the glimpse() function, we see that certain columns need type conversion. In NAME_BASICS, birthYear and deathYear should be converted to numeric using as.numeric(). In TITLE_EPISODES, both seasonNumber and episodeNumber should also be numeric. Similarly, startYear, endYear, and runtimeMinutes in TITLE_BASICS should be numeric. We can use mutate() to apply these changes efficiently.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>NAME_BASICS <span class="ot">&lt;-</span> NAME_BASICS <span class="sc">|&gt;</span></span>
 <span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="at">birthYear =</span> <span class="fu">as.numeric</span>(birthYear),</span>
@@ -1249,7 +1251,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <h1>The Game Poster</h1>
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
-<p><img src="C:/Users/ayram/OneDrive/Desktop/Baruch%20college/STA9750/mini-projects/STA9750-2024-FALL/The_game_poster.jpeg" class="img-fluid quarto-figure quarto-figure-center figure-img" width="600"></p>
+<p><img src="The_game_poster_resized.jpg" class="img-fluid figure-img" width="600"></p>
+<figcaption>The movie poster</figcaption>
 </figure>
 </div>
 <hr>

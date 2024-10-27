@@ -1,5 +1,5 @@
 ---
-title: "mp02"
+title: "Mini-Project #02: The Business of Show Business"
 author: "Ayrat Aymetov"
 editor: visual
 execute: 
@@ -8,11 +8,13 @@ execute:
   warning: false
   message: false
 ---
+
 ```{r}
 library(tidyverse)
 ```
 
 # Introduction to the Mini-Project: The Business of Show Business
+
 This project simulates the role of a Hollywood development executive, using data insights to propose a marketable movie idea. By analyzing IMDb datasets, we explore factors driving movie success, such as ratings, genres, and the impact of top actors and directors.
 
 A key focus is identifying classic films for a potential remake—balancing audience trends with originality. The final pitch proposes a data-driven plan to align artistic vision with business strategy, culminating in a compelling proposal ready for studio approval.
@@ -22,7 +24,8 @@ A key focus is identifying classic films for a potential remake—balancing audi
 For this project, we will use data from the Internet Movie Database (IMDb). Specifically, we will use the tables from the IMDb non-commercial release. These files are made freely available by IMDb for non-commercial use.
 
 The following code will automatically download and load these files into R:
-```{r}
+
+```{r eval = FALSE}
 get_imdb_file <- function(fname){
     BASE_URL <- "https://datasets.imdbws.com/"
     fname_ext <- paste0(fname, ".tsv.gz")
@@ -37,7 +40,9 @@ get_imdb_file <- function(fname){
 TITLE_RATINGS <- get_imdb_file("title.ratings") |>
   select(tconst, averageRating, numVotes) 
 ```
+
 IMDb has a long tail of obscure movies:
+
 ```{r}
 TITLE_RATINGS |>
     ggplot(aes(x=numVotes)) + 
@@ -49,6 +54,7 @@ TITLE_RATINGS |>
     scale_x_log10(label=scales::comma) + 
     scale_y_continuous(label=scales::comma)
 ```
+
 To keep our computers from working too hard, let’s throw out any title with less than 100 ratings. It’s not too hard to see that this drops about 75% of the entire data set:
 
 ```{r}
@@ -56,14 +62,15 @@ TITLE_RATINGS |>
     pull(numVotes) |>
     quantile()
 ```
-We are applying even bigger drop by setting the number of votes >= 1000
+
+We are refining the dataset by applying a stricter filter that only includes titles with at least 1,000 votes. This ensures the selected entries have meaningful audience engagement while also significantly reducing the dataset's size for more efficient analysis.
 ```{r}
 TITLE_RATINGS <- TITLE_RATINGS |>
     filter(numVotes >= 1000)
 ```
 
-
-```{r}
+To ensure RStudio can handle the rendering process smoothly, I am reducing the size of the downloaded datasets by removing unnecessary columns from the tables. Additionally, I am using a semi-join with the reduced `TITLE_RATINGS` table to further limit the data to only relevant entries for our analysis.
+```{r eval = FALSE}
 saveRDS(TITLE_RATINGS, "title_ratings_filtered.rds")
 
 NAME_BASICS <- get_imdb_file("name.basics") |>
@@ -113,7 +120,7 @@ rm(TITLE_EPISODES_1)
 rm(TITLE_EPISODES_2)
 ```
 
-
+All six tables have been saved as RDS files, and now it's time to load them back from the RDS format for further analysis.
 ```{r}
 # Loading filtered data sets from RDS files
 NAME_BASICS <- readRDS("name_basics_filtered.rds")
@@ -124,9 +131,10 @@ TITLE_CREW <- readRDS("title_crew_filtered.rds")
 TITLE_PRINCIPALS <- readRDS("title_principals_filtered.rds")
 ```
 
-
 ## Task 1
-Using the glimpse() function, we see that certain columns need type conversion. In NAME_BASICS, birthYear and deathYear should be converted to numeric using as.numeric(). In TITLE_EPISODES, both seasonNumber and episodeNumber should also be numeric. Similarly, startYear, endYear, and runtimeMinutes in TITLE_BASICS should be numeric, and isAdult should be converted to logical (boolean). We can use mutate() to apply these changes efficiently.
+
+Using the glimpse() function, we see that certain columns need type conversion. In NAME_BASICS, birthYear and deathYear should be converted to numeric using as.numeric(). In TITLE_EPISODES, both seasonNumber and episodeNumber should also be numeric. Similarly, startYear, endYear, and runtimeMinutes in TITLE_BASICS should be numeric. We can use mutate() to apply these changes efficiently.
+
 ```{r}
 NAME_BASICS <- NAME_BASICS |>
     mutate(birthYear = as.numeric(birthYear),
@@ -142,6 +150,7 @@ TITLE_BASICS <- TITLE_BASICS |>
 ```
 
 Let's look at all five tables and data types of their columns:
+
 ```{r}
 library(DT)
 
@@ -172,11 +181,12 @@ datatable(
 )
 ```
 
-
 ## Task 2: Instructor-Provided Questions
+
 ### 1. How many movies are in our data set? How many TV series? How many TV episodes?
 
 Before answering questions about movies and TV series, let's first examine the data types present in the TITLE_BASICS dataset.
+
 ```{r}
 # Getting unique title types from TITLE_BASICS table
 unique_title_types <- TITLE_BASICS |>
@@ -187,6 +197,7 @@ unique_title_types
 ```
 
 Now lets find the number of tv series, episodes and movies from the TITLE_BASICS data set:
+
 ```{r}
 num_tv_series_e <- TITLE_BASICS |>
   filter(titleType == "tvSeries") |>
@@ -224,7 +235,9 @@ oldest_living_person <- NAME_BASICS |>
 
 oldest_living_person
 ```
+
 The last result seems questionable, possibly indicating a missing table in the dataset. To ensure accuracy, let's focus only on individuals who are no older than 105 years.
+
 ```{r}
 oldest_living_person_under_105 <- NAME_BASICS |>
   filter(is.na(deathYear),                  
@@ -244,6 +257,7 @@ oldest_living_person_under_105
 ```
 
 ### 3.There is one TV Episode in this data set with a perfect 10/10 rating and at least 200,000 IMDb ratings. What is it? What series does it belong to?
+
 ```{r}
 # Identify the TV episode with a perfect 10/10 rating and at least 200,000 votes, including season and episode details
 perfect_rated_episodes_with_series <- TITLE_EPISODES |>
@@ -261,7 +275,9 @@ perfect_rated_episodes_with_series <- TITLE_EPISODES |>
 
 perfect_rated_episodes_with_series
 ```
+
 ### 4. What four projects is the actor Mark Hamill most known for?
+
 ```{r}
 # Retrieve and display Mark Hamill's top projects with relevant title details
 mark_hamill_project_details <- NAME_BASICS |>
@@ -278,7 +294,9 @@ mark_hamill_project_details <- NAME_BASICS |>
 
 mark_hamill_project_details
 ```
+
 ### 5. What TV series, with more than 12 episodes, has the highest average rating?
+
 ```{r}
 # Retrieve the highest-rated series with more than 12 episodes and display relevant details
 highest_rated_series_details <- TITLE_EPISODES |>
@@ -297,7 +315,9 @@ highest_rated_series_details <- TITLE_EPISODES |>
 
 highest_rated_series_details
 ```
+
 ### 6.Is it true that episodes from later seasons of Happy Days have lower average ratings than the early seasons?
+
 ```{r}
 # Check if there are multiple TV series called 'Happy Days' and display relevant details
 happy_days_details <- TITLE_BASICS |>
@@ -312,7 +332,9 @@ happy_days_details <- TITLE_BASICS |>
 
 print(happy_days_details)
 ```
-There are two TV series titled "Happy Days." We will focus our analysis only on the one that premiered in 1974. lets check what season there are in the chosen TV weries. 
+
+There are two TV series titled "Happy Days." We will focus our analysis only on the one that premiered in 1974. lets check what season there are in the chosen TV weries.
+
 ```{r}
 # Analyze the season information and include the title name by joining with TITLE_BASICS
 seasons_info <- TITLE_EPISODES |>
@@ -334,7 +356,9 @@ seasons_info <- TITLE_EPISODES |>
 
 seasons_info
 ```
+
 We can now confirm that the selected TV series matches the one required for the task. Let’s proceed with the analysis by dividing the series into ‘Early Seasons’ and ‘Later Seasons’, followed by calculating the average rating for each group.
+
 ```{r}
 # Analyze the average ratings of 'Happy Days' by dividing into 'Early Seasons' and 'Later Seasons'
 happy_days_tconst <- TITLE_BASICS |>
@@ -354,9 +378,11 @@ happy_days_ratings
 ```
 
 ## Task 3: Custom Success Metric
+
 In this task we will create a custom success metric that reflects both the quality (average IMDb rating) and public awareness (number of votes). Using this metric, we’ll add a new column to the TITLE_RATINGS table with the help of the mutate() function. This metric will guide us in identifying the most successful movies for our proposal.
 
 Before we start lets look at the distribution of IMDb Ratings of movies and tv series
+
 ```{r}
 filtered_titles <- TITLE_BASICS |>
   filter(titleType %in% c("movie", "tvSeries")) |>
@@ -369,7 +395,9 @@ ggplot(filtered_titles, aes(x = averageRating)) +
        x = "Average Rating",
        y = "Count of Titles")
 ```
+
 Since our success metric will rely on both ratings and number of votes (public awareness), let’s first examine the distribution of votes to better understand how public engagement varies across titles.
+
 ```{r}
 library(scales)
 
@@ -390,7 +418,9 @@ ggplot(success_titles, aes(x = numVotes)) +
   theme_minimal() +
   theme() 
 ```
+
 Based on these two distributions, we can define a **success metric**. We’ll categorize movies and TV series as **highly successful** if they have an average rating of **at least 7.5 out of 10** and **at least 50,000 votes**. This high vote threshold ensures that the titles we include predominantly come from **USA and Europe**, reflecting strong public engagement in these regions.
+
 ```{r}
 success_summary <- success_titles |>
   group_by(success) |>
@@ -398,8 +428,8 @@ success_summary <- success_titles |>
 
 success_summary
 ```
-We assigned High success to 1695 titles, and Low success to 37861 titles.
 
+We assigned High success to 1695 titles, and Low success to 37861 titles.
 
 ```{r}
 # Analyze and visualize the number of high success movies and TV series
@@ -420,7 +450,9 @@ ggplot(success_counts, aes(x = TitleType, y = n, fill = TitleType)) +
   scale_fill_manual(values = c("Movies" = "blue", "TV Series" = "red")) +
   theme_minimal()
 ```
-Lets look at are plot of successful  movies and TV series distribution.
+
+Lets look at are plot of successful movies and TV series distribution.
+
 ```{r}
 # Adjusted join and filtering for high success titles
 title_details_high <- success_titles |>
@@ -432,7 +464,6 @@ title_details_high <- success_titles |>
 movie_details_high <- title_details_high |>filter(titleType == "movie")
 tv_series_details_high <- title_details_high |> filter(titleType == "tvSeries")
 ```
-
 
 ```{r}
 combined_ratings <- bind_rows(
@@ -452,7 +483,9 @@ ggplot(combined_ratings, aes(x = averageRating, fill = Type)) +
   theme_minimal()
 
 ```
+
 ### Validate your success metric as follows:
+
 #### 1. Choose the top 5-10 movies on your metric and confirm that they were indeed box office successes.
 
 ```{r}
@@ -470,7 +503,9 @@ top_movies <- movie_details_high |>
 
 top_movies
 ```
+
 The box office data pulled from internet:
+
 ```{r}
 # Create a data frame with box office data and displaying a table
 box_office_data <- data.frame(
@@ -503,6 +538,7 @@ datatable(
 ```
 
 #### 2. Choose 3-5 movies with large numbers of IMDb votes that score poorly on your success metric and confirm that they are indeed of low quality.
+
 ```{r}
 # Filtering movies classified as Low success with a significant number of votes
 low_quality_high_votes <- success_titles |>
@@ -514,6 +550,7 @@ low_quality_high_votes <- success_titles |>
 
 low_quality_high_votes
 ```
+
 ```{r}
 # Creating a data frame with the new box office data and displaying the data as an interactive DT table
 box_office_data <- data.frame(
@@ -546,7 +583,9 @@ datatable(
 These films, despite their low quality, managed to generate significantly higher revenue than their production budgets.
 
 #### 3. Choose a prestige actor or director and confirm that they have many projects with high scores on your success metric.
+
 Lets take Leonardo DiCaprio as our prestige actor:
+
 ```{r}
 leo_projects <- NAME_BASICS |>
   filter(primaryName == "Leonardo DiCaprio") |>
@@ -562,20 +601,21 @@ leo_ratings <- leo_projects |>
 
 leo_ratings
 ```
+
 Based on my metrics, Leonardo DiCaprio has appeared in at least four highly successful movies.
 
-#### Come up with a numerical threshold for a project to be a ‘success’; that is, determine a value  such that movies above  are all “solid” or better.
+#### Come up with a numerical threshold for a project to be a ‘success’; that is, determine a value such that movies above are all “solid” or better.
 
 Based on my analysis, I’ve defined a success threshold:
 
-- High Success: Average rating ≥ 8.0 and votes ≥ 10,000
-- Low Success: Average rating < 5.0
-- Medium Success: Everything in between
-This classification balances both critical quality and audience engagement to identify solid or better films.
+-   High Success: Average rating ≥ 8.0 and votes ≥ 10,000
+-   Low Success: Average rating \< 5.0
+-   Medium Success: Everything in between This classification balances both critical quality and audience engagement to identify solid or better films.
 
-## Taks 4.  Trends in Success Over Time
-With a defined success metric in place, we can now explore how trends in success have evolved over time, focusing on shifts in genre popularity across decades.
-### 1. What was the genre with the most “successes” in each decade?
+## Taks 4. Trends in Success Over Time
+
+With a defined success metric in place, we can now explore how trends in success have evolved over time, focusing on shifts in genre popularity across decades. \### 1. What was the genre with the most “successes” in each decade?
+
 ```{r}
 top_genres_per_decade <- movie_details_high |>
   mutate(decade = floor(startYear / 10) * 10) |>
@@ -599,6 +639,7 @@ ggplot(top_genres_per_decade, aes(x = factor(decade), y = success_count, fill = 
     axis.text.x = element_text(angle = 45, hjust = 1)  # Rotate x-axis labels for better readability
   )
 ```
+
 As we can observe, the drama genre consistently dominated across all decades.
 
 ### 2. What genre consistently has the most “successes”? What genre used to reliably produced “successes” and has fallen out of favor?
@@ -629,9 +670,11 @@ ggplot(top_genres_positions, aes(x = decade, y = position, color = genres, group
   theme_light()
 
 ```
+
 We see that drama has the most successes. Comedy used to be the second most popular genre till the 1990s. Crime used to be popular until the 2010s. Now action movies became the second most successful genre.
 
 ### 3. What genre has produced the most “successes” since 2010? Does it have the highest success rate or does it only have a large number of successes because there are many productions in that genre?
+
 ```{r}
 # Filtering for Drama and Action genres
 filtered_genres <- movie_details_high |>
@@ -650,9 +693,11 @@ ggplot(filtered_genres, aes(x = averageRating, fill = genres)) +
   scale_fill_manual(values = c("Comedy" = "green","Drama" = "blue", "Action" = "red", "Adventure" = "yellow"))
 
 ```
+
 This plot suggests that, since 2010, the four genres have shown similar ratings and vote counts. However, **comedy** appears to be the least successful among them, likely indicating lower audience engagement or critical reception compared to the other genres.
 
 ### 4. What genre has become more popular in recent years?
+
 ```{r}
 # Filtering for Drama and Action genres
 filtered_genres <- movie_details_high |>
@@ -670,6 +715,7 @@ ggplot(filtered_genres, aes(x = averageRating, fill = genres)) +
   theme_light() + 
   scale_fill_manual(values = c("Comedy" = "green","Drama" = "blue", "Action" = "red", "Adventure" = "yellow"))
 ```
+
 ```{r}
 # Creating a histogram plot for genre counts
 genre_counts <- movie_details_high |>
@@ -691,23 +737,28 @@ ggplot(genre_counts, aes(x = genres, y = Count, fill = genres)) +
     legend.position = "none"
   )
 ```
+
 The data indicates that the **Comedy** and **Adventure** genres have been the least successful and popular in recent years. In contrast, **Action** and **Drama** genres have emerged as the most successful, likely driven by strong audience engagement and critical acclaim.
 
 ## Task 5: Key Personnel
+
 Next, we will focus on identifying key personnel to anchor our project. Specifically, we’ll select two actors and one director who have prior experience in the target genre, with at least moderate success and one major success to their credit.
 
 We may explore combinations such as:
 
-- An experienced, established actor paired with a rising star.
-- A successful actor-director duo who have worked together before.
-- A new collaboration between two high-profile individuals who have never worked together.
+-   An experienced, established actor paired with a rising star.
+-   A successful actor-director duo who have worked together before.
+-   A new collaboration between two high-profile individuals who have never worked together.
 
 First, let's explore the various professions in the movie industry based on the data pulled from the **TITLE_PRINCIPALS** table.
+
 ```{r}
 unique_categories <- unique(TITLE_PRINCIPALS$category)
 print(unique_categories)
 ```
+
 For our movie proposal, I will select the **drama genre**, as it remains the most popular genre to date. For the **director**, I will focus on someone who has directed a successful drama since the year 2000. Additionally, I will ensure the chosen director is **70 years old or younger** to ensure relevance and availability. From this pool, I will identify the **top 10 directors** with the highest number of successful movies to shortlist the ideal candidate.
+
 ```{r}
 current_year <- 2024
 
@@ -735,6 +786,7 @@ datatable(
 ```
 
 Now, let’s identify **five successful actors** and **five successful actresses** to feature in our movie. Lets consider only movies filmed in recent 10 years. This way we make sure the actors and actresses are still active.
+
 ```{r}
 # Filtering and identifying top actors and actresses from successful movies (2014-2024)
 result_table <- movie_details_high |>
@@ -761,6 +813,7 @@ datatable(
 ```
 
 In addition to selecting a director and two actors, let’s identify a **successful screenwriter** to further strengthen our project.
+
 ```{r}
 # Filtering drama movies, counting writers, and displaying top 10
 top_10_writers <- movie_details_high |>
@@ -788,7 +841,9 @@ datatable(
 Based on the data we gathered, an ideal lineup for our proposed drama movie would include **Christopher Nolan** as both the **director and writer**, given his history of success in the genre. Additionally, **Ryan Reynolds** would be a great fit as the lead actor, with **Scarlett Johansson** as the lead actress, forming a compelling and marketable cast.
 
 ## Task 6: Finding a Classic Movie to Remake
+
 Next, lets focus on finding a **classic movie** in the chosen genre to remake with my selected key talent. The goal is to identify a film with **high IMDb ratings** and **strong audience reception**, ensuring it hasn’t been remade in the last **25 years**. This remake will leverage nostalgia while aligning with current trends to attract both loyal fans and new audiences.
+
 ```{r}
 # Identifying classic drama movies (before 1999) and check for remakes in the last 25 years
 classics_candidates <- movie_details_high |>
@@ -819,9 +874,11 @@ datatable(
   class = 'cell-border stripe'
 )
 ```
+
 A compelling option for our project is to remake **"The Game"** (ranked 46th in the table). I believe **Ryan Reynolds** and **Scarlett Johansson** would be excellent fits for the story. Their versatility and screen presence align perfectly with the film’s psychological and suspenseful tone. Personally, I admire both actors and am confident they can bring the necessary depth and intrigue to this type of movie.
 
 Next, we will verify whether the **key actors, directors, or writers** from the original movie are still alive. If they are, we’ll coordinate with the **legal department** to secure the necessary rights for the remake. Additionally, we’ll explore the possibility of including any original cast members as **fan service** to enhance audience appeal.
+
 ```{r}
 # Pulling and filtering alive cast and crew of 'The Game' (tt0119174)
 personnel_details <- bind_rows(
@@ -860,13 +917,14 @@ datatable(
   class = 'cell-border stripe'
 )
 ```
+
 ## Task 7: Write and Deliver Your Pitch
 
 Proposal: *The Game* – A Thrilling Remake
 
-We propose an exciting remake of the classic 1997 thriller *The Game*, featuring modern Hollywood stars **Ryan Reynolds** and **Scarlett Johansson**. Their exceptional talent and on-screen chemistry perfectly suit the film’s emotional depth and psychological intrigue. Reynolds’ unique ability to balance charm with intensity, alongside Johansson’s enigmatic presence, promises a gripping cinematic experience. 
+We propose an exciting remake of the classic 1997 thriller *The Game*, featuring modern Hollywood stars **Ryan Reynolds** and **Scarlett Johansson**. Their exceptional talent and on-screen chemistry perfectly suit the film’s emotional depth and psychological intrigue. Reynolds’ unique ability to balance charm with intensity, alongside Johansson’s enigmatic presence, promises a gripping cinematic experience.
 
-This remake is especially timely, as **psychological thrillers** are making a strong comeback. The original captivated audiences with its intricate plot and high stakes, making it an ideal choice for a modern reimagining. Johansson and Reynolds—both known for excelling across multiple genres—will attract a broad audience and ensure both **critical acclaim** and **box office success**.  
+This remake is especially timely, as **psychological thrillers** are making a strong comeback. The original captivated audiences with its intricate plot and high stakes, making it an ideal choice for a modern reimagining. Johansson and Reynolds—both known for excelling across multiple genres—will attract a broad audience and ensure both **critical acclaim** and **box office success**.
 
 With its themes of **manipulation, reality distortion**, and **personal redemption**, *The Game* feels even more relevant today in our fast-paced digital world. Featuring such A-list talent not only enhances the film's commercial potential but also ensures it will resonate deeply with contemporary audiences.
 
@@ -874,6 +932,6 @@ Get ready for a **mind-bending adventure** that will keep viewers guessing until
 
 # The Game Poster
 
-![](C:/Users/ayram/OneDrive/Desktop/Baruch college/STA9750/mini-projects/STA9750-2024-FALL/The_game_poster.jpeg){fig-align="center" width="600px"}
+![The movie poster](The_game_poster_resized.jpg){fig-align="center" width="600px"}
 
----
+------------------------------------------------------------------------
