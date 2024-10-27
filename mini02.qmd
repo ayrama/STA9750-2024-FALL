@@ -31,33 +31,39 @@ get_imdb_file <- function(fname){
 }
 
 # Load and save datasets (only run this once)
-NAME_BASICS <- get_imdb_file("name.basics")
-saveRDS(NAME_BASICS, "name_basics.rds")
+NAME_BASICS <- get_imdb_file("name.basics") |>
+  select(nconst, primaryName, birthYear, deathYear, primaryProfession, knownForTitles)
+saveRDS(NAME_BASICS, "name_basics_filtered.rds")
 
-TITLE_BASICS <- get_imdb_file("title.basics")
-saveRDS(TITLE_BASICS, "title_basics.rds")
+TITLE_BASICS <- get_imdb_file("title.basics") |>
+  select(tconst, primaryTitle, originalTitle, titleType, startYear, endYear, isAdult, genres)
+saveRDS(TITLE_BASICS, "title_basics_filtered.rds")
 
-TITLE_EPISODES <- get_imdb_file("title.episode")
-saveRDS(TITLE_EPISODES, "title_episodes.rds")
+TITLE_EPISODES <- get_imdb_file("title.episode") |>
+  select(tconst, parentTconst, seasonNumber, episodeNumber)
+saveRDS(TITLE_EPISODES, "title_episodes_filtered.rds")
 
-TITLE_RATINGS <- get_imdb_file("title.ratings")
-saveRDS(TITLE_RATINGS, "title_ratings.rds")
+TITLE_RATINGS <- get_imdb_file("title.ratings") |>
+  select(tconst, averageRating, numVotes)
+saveRDS(TITLE_RATINGS, "title_ratings_filtered.rds")
 
-TITLE_CREW <- get_imdb_file("title.crew")
-saveRDS(TITLE_CREW, "title_crew.rds")
+TITLE_CREW <- get_imdb_file("title.crew") |>
+  select(tconst, directors, writers)
+saveRDS(TITLE_CREW, "title_crew_filtered.rds")
 
-TITLE_PRINCIPALS <- get_imdb_file("title.principals")
-saveRDS(TITLE_PRINCIPALS, "title_principals.rds")
+TITLE_PRINCIPALS <- get_imdb_file("title.principals") |>
+  select(tconst, nconst, category, job, characters)
+saveRDS(TITLE_PRINCIPALS, "title_principals_filtered.rds")
 ```
 
 ```{r}
-# Load datasets from RDS files
-NAME_BASICS <- readRDS("name_basics.rds")
-TITLE_BASICS <- readRDS("title_basics.rds")
-TITLE_EPISODES <- readRDS("title_episodes.rds")
-TITLE_RATINGS <- readRDS("title_ratings.rds")
-TITLE_CREW <- readRDS("title_crew.rds")
-TITLE_PRINCIPALS <- readRDS("title_principals.rds")
+# Loading filtered data sets from RDS files
+NAME_BASICS <- readRDS("name_basics_filtered.rds")
+TITLE_BASICS <- readRDS("title_basics_filtered.rds")
+TITLE_EPISODES <- readRDS("title_episodes_filtered.rds")
+TITLE_RATINGS <- readRDS("title_ratings_filtered.rds")
+TITLE_CREW <- readRDS("title_crew_filtered.rds")
+TITLE_PRINCIPALS <- readRDS("title_principals_filtered.rds")
 ```
 
 
@@ -140,8 +146,7 @@ TITLE_EPISODES <- TITLE_EPISODES |>
 
 TITLE_BASICS <- TITLE_BASICS |>
     mutate(startYear = as.numeric(startYear),
-           endYear = as.numeric(endYear),
-           runtimeMinutes = as.numeric(runtimeMinutes),
+           endYear = as.numeric(endYear),,
            isAdult = as.logical(isAdult))
 ```
 
@@ -377,6 +382,13 @@ Since our success metric will rely on both ratings and number of votes (public a
 ```{r}
 library(scales)
 
+success_titles <- TITLE_RATINGS |>
+  mutate(success = case_when(
+    averageRating >= 7.5 & numVotes >= 50000 ~ "High",
+    averageRating < 5.0 ~ "Low",
+    TRUE ~ "Medium"
+  ))
+
 # Plotting the distribution of numVotes with formatted axis labels
 ggplot(success_titles, aes(x = numVotes)) +
   geom_histogram(bins = 100, fill = "blue", color = "black") +
@@ -389,13 +401,6 @@ ggplot(success_titles, aes(x = numVotes)) +
 ```
 Based on these two distributions, we can define a **success metric**. We’ll categorize movies and TV series as **highly successful** if they have an average rating of **at least 7.5 out of 10** and **at least 50,000 votes**. This high vote threshold ensures that the titles we include predominantly come from **USA and Europe**, reflecting strong public engagement in these regions.
 ```{r}
-success_titles <- TITLE_RATINGS |>
-  mutate(success = case_when(
-    averageRating >= 7.5 & numVotes >= 50000 ~ "High",
-    averageRating < 5.0 ~ "Low",
-    TRUE ~ "Medium"
-  ))
-
 success_summary <- success_titles |>
   group_by(success) |>
   summarise(Count = n(), .groups = 'drop')
@@ -425,6 +430,18 @@ ggplot(success_counts, aes(x = TitleType, y = n, fill = TitleType)) +
   theme_minimal()
 ```
 Lets look at are plot of successful  movies and TV series distribution.
+```{r}
+# Adjusted join and filtering for high success titles
+title_details_high <- success_titles |>
+  filter(success == "High") |>
+  inner_join(TITLE_BASICS, by = "tconst") |>
+  filter(titleType %in% c("movie", "tvSeries"))
+
+# Filter for movies and TV series specifically
+movie_details_high <- title_details_high |>filter(titleType == "movie")
+tv_series_details_high <- title_details_high |> filter(titleType == "tvSeries")
+```
+
 
 ```{r}
 combined_ratings <- bind_rows(
