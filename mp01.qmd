@@ -3,6 +3,9 @@ title: "Mini-Project #01: Fiscal Characteristics of Major US Public Transit Syst
 author: "Ayrat Aymetov"
 format: html
 editor: visual
+execute: 
+  warning: false
+  message: false
 ---
 
 # Introduction
