@@ -64,12 +64,14 @@ TITLE_RATINGS |>
 ```
 
 We are refining the dataset by applying a stricter filter that only includes titles with at least 1,000 votes. This ensures the selected entries have meaningful audience engagement while also significantly reducing the dataset's size for more efficient analysis.
+
 ```{r}
 TITLE_RATINGS <- TITLE_RATINGS |>
     filter(numVotes >= 1000)
 ```
 
 To ensure RStudio can handle the rendering process smoothly, I am reducing the size of the downloaded datasets by removing unnecessary columns from the tables. Additionally, I am using a semi-join with the reduced `TITLE_RATINGS` table to further limit the data to only relevant entries for our analysis.
+
 ```{r}
 saveRDS(TITLE_RATINGS, "title_ratings_filtered.rds")
 
@@ -121,6 +123,7 @@ rm(TITLE_EPISODES_2)
 ```
 
 All six tables have been saved as RDS files, and now it's time to load them back from the RDS format for further analysis.
+
 ```{r}
 # Loading filtered data sets from RDS files
 NAME_BASICS <- readRDS("name_basics_filtered.rds")
@@ -934,4 +937,4 @@ Get ready for a **mind-bending adventure** that will keep viewers guessing until
 
 ![The movie poster](The_game_poster_resized.jpg){fig-align="center" width="600px"}
 
----------------------------------------------------------------------
+------------------------------------------------------------------------
